@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Graficador de Desigualdades Lineales</title>
+  <title>Graficador de 2 Desigualdades</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,17 +15,16 @@
     }
 
     .inputs {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      max-width: 600px;
-      margin: 20px auto;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px;
     }
 
     input {
       padding: 8px;
       font-size: 16px;
-      width: 90%;
+      width: 250px;
     }
 
     button {
@@ -52,8 +51,6 @@
   <div class="inputs">
     <input type="text" id="ineq1" placeholder="Desigualdad 1 (ej: y<=2*x+5)">
     <input type="text" id="ineq2" placeholder="Desigualdad 2">
-    <input type="text" id="ineq3" placeholder="Desigualdad 3">
-    <input type="text" id="ineq4" placeholder="Desigualdad 4">
   </div>
 
   <button onclick="graficar()">Graficar región de solución</button>
@@ -64,7 +61,7 @@
   <script>
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
-    const scale = 20; // 1 unidad = 20px
+    const scale = 20;
     const width = canvas.width;
     const height = canvas.height;
     const origin = { x: 50, y: height - 50 };
@@ -76,9 +73,9 @@
       ctx.strokeStyle = "#000";
       ctx.beginPath();
       ctx.moveTo(0, origin.y);
-      ctx.lineTo(width, origin.y); // eje X
+      ctx.lineTo(width, origin.y);
       ctx.moveTo(origin.x, 0);
-      ctx.lineTo(origin.x, height); // eje Y
+      ctx.lineTo(origin.x, height);
       ctx.stroke();
     }
 
@@ -127,8 +124,6 @@
       const inecuaciones = [
         document.getElementById("ineq1").value.trim(),
         document.getElementById("ineq2").value.trim(),
-        document.getElementById("ineq3").value.trim(),
-        document.getElementById("ineq4").value.trim(),
       ];
 
       inecuaciones.forEach((ine, i) => {
@@ -146,7 +141,6 @@
       });
     }
 
-    // Dibujo inicial
     limpiarCanvas();
   </script>
 </body>
