@@ -117,20 +117,20 @@
     }
   }
 
-  function evaluar(func, x) {
+  function evaluar(expr, x) {
     try {
-      return eval(func);
+      return Function("x", "return " + expr)(x);
     } catch {
       return NaN;
     }
   }
 
-  function graficarLinea(func, color = "purple") {
+  function graficarLinea(expr, color) {
     ctx.beginPath();
     ctx.strokeStyle = color;
     let started = false;
-    for (let x = -origin.x / scale; x <= (width - origin.x) / scale; x += 0.1) {
-      const y = evaluar(func, x);
+    for (let x = -7.5; x <= 7.5; x += 0.1) {
+      const y = evaluar(expr, x);
       if (!isNaN(y)) {
         const px = origin.x + x * scale;
         const py = origin.y - y * scale;
@@ -145,17 +145,37 @@
     ctx.stroke();
   }
 
-  function sombrearRegion(func, tipo, color = "rgba(0, 200, 255, 0.2)") {
-    for (let x = -origin.x / scale; x <= (width - origin.x) / scale; x += 0.1) {
-      const y = evaluar(func, x);
+  function sombrear(expr, tipo, color) {
+    for (let x = -7.5; x <= 7.5; x += 0.1) {
+      const y = evaluar(expr, x);
       if (!isNaN(y)) {
         const px = origin.x + x * scale;
         const py = origin.y - y * scale;
         ctx.fillStyle = color;
         if (tipo.includes("<")) {
           ctx.fillRect(px, py, 1, height - py);
-        } else if (tipo.includes(">")) {
+        } else {
           ctx.fillRect(px, 0, 1, py);
+        }
+      }
+    }
+  }
+
+  function sombrearInterseccion(expr1, tipo1, expr2, tipo2) {
+    for (let x = -7.5; x <= 7.5; x += 0.1) {
+      const y1 = evaluar(expr1, x);
+      const y2 = evaluar(expr2, x);
+      if (!isNaN(y1) && !isNaN(y2)) {
+        const px = origin.x + x * scale;
+        let yMin, yMax;
+        if (tipo1.includes("<") && tipo2.includes("<")) {
+          yMin = Math.min(y1, y2);
+          ctx.fillStyle = "rgba(255, 105, 180, 0.4)"; // rosado claro
+          ctx.fillRect(px, origin.y - yMin * scale, 1, height - (origin.y - yMin * scale));
+        } else if (tipo1.includes(">") && tipo2.includes(">")) {
+          yMax = Math.max(y1, y2);
+          ctx.fillStyle = "rgba(255, 105, 180, 0.4)";
+          ctx.fillRect(px, 0, 1, origin.y - yMax * scale);
         }
       }
     }
@@ -164,27 +184,34 @@
   function graficar() {
     limpiarCanvas();
 
-    const inecuaciones = [
-      document.getElementById("ineq1").value.trim(),
-      document.getElementById("ineq2").value.trim()
-    ];
+    const input1 = document.getElementById("ineq1").value.trim();
+    const input2 = document.getElementById("ineq2").value.trim();
 
-    inecuaciones.forEach((ine, i) => {
-      if (ine) {
-        const match = ine.match(/y\s*([<>]=?)\s*(.+)/);
-        if (match) {
-          const operador = match[1];
-          const expresion = match[2];
-          sombrearRegion(expresion, operador); // celeste
-          graficarLinea(expresion);
-        } else {
-          alert("La desigualdad " + (i + 1) + " no tiene el formato correcto.");
-        }
-      }
-    });
+    const match1 = input1.match(/y\s*([<>]=?)\s*(.+)/);
+    const match2 = input2.match(/y\s*([<>]=?)\s*(.+)/);
+
+    if (!match1) {
+      alert("La desigualdad 1 no tiene el formato correcto.");
+      return;
+    }
+
+    const op1 = match1[1];
+    const expr1 = match1[2];
+
+    if (match2) {
+      const op2 = match2[1];
+      const expr2 = match2[2];
+      sombrearInterseccion(expr1, op1, expr2, op2);
+      graficarLinea(expr1, "red");
+      graficarLinea(expr2, "blue");
+    } else {
+      sombrear(expr1, op1, "pink");
+      graficarLinea(expr1, "red");
+    }
   }
 
   limpiarCanvas();
 </script>
+
 </body>
 </html>
