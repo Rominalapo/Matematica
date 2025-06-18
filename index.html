@@ -145,7 +145,7 @@
     ctx.stroke();
   }
 
-  function sombrearRegion(func, tipo, color = "rgba(128,0,128,0.2)") {
+  function sombrearRegion(func, tipo, color = "rgba(0, 200, 255, 0.2)") {
     for (let x = -origin.x / scale; x <= (width - origin.x) / scale; x += 0.1) {
       const y = evaluar(func, x);
       if (!isNaN(y)) {
@@ -175,7 +175,7 @@
         if (match) {
           const operador = match[1];
           const expresion = match[2];
-          sombrearRegion(expresion, operador);
+          sombrearRegion(expresion, operador); // celeste
           graficarLinea(expresion);
         } else {
           alert("La desigualdad " + (i + 1) + " no tiene el formato correcto.");
