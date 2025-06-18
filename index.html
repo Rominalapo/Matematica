@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Graficador de 2 Desigualdades</title>
+  <title>Graficador con Ejes Numerados</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -46,7 +46,7 @@
 </head>
 <body>
 
-  <h2>Graficador de Desigualdades Lineales</h2>
+  <h2>Graficador de Desigualdades con Ejes</h2>
 
   <div class="inputs">
     <input type="text" id="ineq1" placeholder="Desigualdad 1 (ej: y<=2*x+5)">
@@ -61,7 +61,7 @@
   <script>
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
-    const scale = 20;
+    const scale = 40; // cada unidad = 40px
     const width = canvas.width;
     const height = canvas.height;
     const origin = { x: 50, y: height - 50 };
@@ -70,13 +70,49 @@
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, width, height);
+
+      // Ejes
       ctx.strokeStyle = "#000";
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(0, origin.y);
-      ctx.lineTo(width, origin.y);
+      ctx.lineTo(width, origin.y); // Eje X
       ctx.moveTo(origin.x, 0);
-      ctx.lineTo(origin.x, height);
+      ctx.lineTo(origin.x, height); // Eje Y
       ctx.stroke();
+
+      // Números y líneas de cuadrícula
+      ctx.font = "12px Arial";
+      ctx.fillStyle = "#333";
+      ctx.strokeStyle = "#eee";
+      ctx.lineWidth = 0.5;
+
+      for (let i = 0; i <= 12; i++) {
+        const x = origin.x + i * scale;
+        const y = origin.y - i * scale;
+
+        // Líneas verticales
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+
+        // Número en eje X
+        if (x >= origin.x) {
+          ctx.fillText(i, x - 3, origin.y + 15);
+        }
+
+        // Líneas horizontales
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+
+        // Número en eje Y
+        if (y <= origin.y) {
+          ctx.fillText(i, origin.x - 20, y + 3);
+        }
+      }
     }
 
     function evaluar(func, x) {
@@ -141,6 +177,7 @@
       });
     }
 
+    // Dibujo inicial
     limpiarCanvas();
   </script>
 </body>
