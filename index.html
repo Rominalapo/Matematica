@@ -2,136 +2,152 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Graficador de Desigualdades</title>
+  <title>Graficador de Desigualdades Lineales</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      text-align: center;
+      background: #f7f7f7;
+    }
+
+    h2 {
       margin-top: 20px;
     }
+
+    .inputs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+
+    input {
+      padding: 8px;
+      font-size: 16px;
+      width: 90%;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #663399;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
     canvas {
-      border: 1px solid #333;
-      background-color: #fff;
+      border: 1px solid #ccc;
+      background: white;
     }
   </style>
 </head>
 <body>
 
-  <h2>Gráfico de desigualdades lineales</h2>
-  <canvas id="grafico" width="600" height="600"></canvas>
+  <h2>Graficador de Desigualdades Lineales</h2>
+
+  <div class="inputs">
+    <input type="text" id="ineq1" placeholder="Desigualdad 1 (ej: y<=2*x+5)">
+    <input type="text" id="ineq2" placeholder="Desigualdad 2">
+    <input type="text" id="ineq3" placeholder="Desigualdad 3">
+    <input type="text" id="ineq4" placeholder="Desigualdad 4">
+  </div>
+
+  <button onclick="graficar()">Graficar región de solución</button>
+
+  <canvas id="canvas" width="600" height="600"></canvas>
+  <p><strong>Región de solución factible</strong></p>
 
   <script>
-    const canvas = document.getElementById('grafico');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const scale = 20; // 1 unidad = 20px
     const width = canvas.width;
     const height = canvas.height;
+    const origin = { x: 50, y: height - 50 };
 
-    // Escala (pixeles por unidad)
-    const escala = 40;
-    const origen = { x: width / 2, y: height / 2 };
-
-    // Dibuja los ejes cartesianos
-    function dibujarEjes() {
+    function limpiarCanvas() {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, width, height);
       ctx.strokeStyle = "#000";
-      ctx.lineWidth = 1;
-
-      // Eje X
       ctx.beginPath();
-      ctx.moveTo(0, origen.y);
-      ctx.lineTo(width, origen.y);
+      ctx.moveTo(0, origin.y);
+      ctx.lineTo(width, origin.y); // eje X
+      ctx.moveTo(origin.x, 0);
+      ctx.lineTo(origin.x, height); // eje Y
       ctx.stroke();
+    }
 
-      // Eje Y
-      ctx.beginPath();
-      ctx.moveTo(origen.x, 0);
-      ctx.lineTo(origen.x, height);
-      ctx.stroke();
-
-      // Líneas de cuadrícula
-      ctx.strokeStyle = "#ccc";
-      for (let x = origen.x % escala; x < width; x += escala) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-      }
-      for (let y = origen.y % escala; y < height; y += escala) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
+    function evaluar(func, x) {
+      try {
+        return eval(func);
+      } catch {
+        return NaN;
       }
     }
 
-    // Convierte coordenadas cartesianas a píxeles
-    function aPixeles(x, y) {
-      return {
-        x: origen.x + x * escala,
-        y: origen.y - y * escala
-      };
-    }
-
-    // Dibuja una desigualdad de la forma ax + by ≤ c
-    function dibujarDesigualdad(a, b, c, color = 'rgba(0, 100, 255, 0.3)') {
-      ctx.fillStyle = color;
+    function graficarLinea(func, color = "purple") {
       ctx.beginPath();
-
-      const puntos = [];
-
-      // Genera puntos en los extremos del lienzo
-      for (let x = -width / (2 * escala); x <= width / (2 * escala); x += 0.5) {
-        const y = (c - a * x) / b;
-        if (!isNaN(y) && isFinite(y)) {
-          puntos.push({ x, y });
+      ctx.strokeStyle = color;
+      for (let x = 0; x <= (width - origin.x) / scale; x += 0.1) {
+        const y = evaluar(func, x);
+        if (!isNaN(y)) {
+          const px = origin.x + x * scale;
+          const py = origin.y - y * scale;
+          ctx.lineTo(px, py);
         }
       }
-
-      // Dibuja la región de la desigualdad
-      const region = puntos.filter(p => a * p.x + b * p.y <= c);
-      if (region.length > 0) {
-        const inicio = aPixeles(region[0].x, region[0].y);
-        ctx.moveTo(inicio.x, inicio.y);
-        for (let p of region) {
-          const pixel = aPixeles(p.x, p.y);
-          ctx.lineTo(pixel.x, pixel.y);
-        }
-
-        // Rellenar hacia abajo si b > 0, hacia arriba si b < 0
-        const extremo1 = aPixeles(region[0].x, -height / escala);
-        const extremo2 = aPixeles(region[region.length - 1].x, -height / escala);
-        ctx.lineTo(extremo2.x, extremo2.y);
-        ctx.lineTo(extremo1.x, extremo1.y);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      // Dibuja la línea de la desigualdad
-      ctx.beginPath();
-      const p1 = aPixeles(-width / (2 * escala), (c - a * (-width / (2 * escala))) / b);
-      const p2 = aPixeles(width / (2 * escala), (c - a * (width / (2 * escala))) / b);
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.strokeStyle = '#003366';
-      ctx.lineWidth = 2;
       ctx.stroke();
     }
 
-    // Inicializa el gráfico
-    function iniciar() {
-      dibujarEjes();
-
-      // Desigualdades: puedes cambiar o añadir más
-      // Forma: a, b, c, color (opcional)
-      dibujarDesigualdad(1, 1, 5, 'rgba(0, 200, 0, 0.3)');   // x + y ≤ 5
-      dibujarDesigualdad(-1, 1, 2, 'rgba(255, 0, 0, 0.3)');  // -x + y ≤ 2
-      dibujarDesigualdad(1, 0, 4, 'rgba(0, 0, 255, 0.3)');   // x ≤ 4
-      dibujarDesigualdad(0, 1, 3, 'rgba(255, 165, 0, 0.3)'); // y ≤ 3
+    function sombrearRegion(func, tipo, color = "rgba(128,0,128,0.2)") {
+      for (let x = 0; x <= (width - origin.x) / scale; x += 0.1) {
+        const y = evaluar(func, x);
+        if (!isNaN(y)) {
+          const px = origin.x + x * scale;
+          const py = origin.y - y * scale;
+          if (tipo.includes("<")) {
+            ctx.fillStyle = color;
+            ctx.fillRect(px, py, 1, height - py);
+          } else if (tipo.includes(">")) {
+            ctx.fillStyle = color;
+            ctx.fillRect(px, 0, 1, py);
+          }
+        }
+      }
     }
 
-    iniciar();
+    function graficar() {
+      limpiarCanvas();
+
+      const inecuaciones = [
+        document.getElementById("ineq1").value.trim(),
+        document.getElementById("ineq2").value.trim(),
+        document.getElementById("ineq3").value.trim(),
+        document.getElementById("ineq4").value.trim(),
+      ];
+
+      inecuaciones.forEach((ine, i) => {
+        if (ine) {
+          const match = ine.match(/y\s*([<>]=?)\s*(.+)/);
+          if (match) {
+            const operador = match[1];
+            const expresion = match[2];
+            sombrearRegion(expresion, operador);
+            graficarLinea(expresion);
+          } else {
+            alert("La desigualdad " + (i + 1) + " no tiene el formato correcto.");
+          }
+        }
+      });
+    }
+
+    // Dibujo inicial
+    limpiarCanvas();
   </script>
 </body>
 </html>
