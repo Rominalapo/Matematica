@@ -46,139 +46,145 @@
 </head>
 <body>
 
-  <h2>Graficador de Desigualdades con Ejes</h2>
+<h2>Graficador de Desigualdades con Ejes Numerados</h2>
 
-  <div class="inputs">
-    <input type="text" id="ineq1" placeholder="Desigualdad 1 (ej: y<=2*x+5)">
-    <input type="text" id="ineq2" placeholder="Desigualdad 2">
-  </div>
+<div class="inputs">
+  <input type="text" id="ineq1" placeholder="Desigualdad 1 (ej: y<=2*x+5)">
+  <input type="text" id="ineq2" placeholder="Desigualdad 2 (opcional)">
+</div>
 
-  <button onclick="graficar()">Graficar región de solución</button>
+<button onclick="graficar()">Graficar región de solución</button>
 
-  <canvas id="canvas" width="600" height="600"></canvas>
-  <p><strong>Región de solución factible</strong></p>
+<canvas id="canvas" width="600" height="600"></canvas>
+<p><strong>Región de solución factible</strong></p>
 
-  <script>
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    const scale = 40; // cada unidad = 40px
-    const width = canvas.width;
-    const height = canvas.height;
-    const origin = { x: 50, y: height - 50 };
+<script>
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const scale = 40;
+  const width = canvas.width;
+  const height = canvas.height;
+  const origin = { x: width / 2, y: height / 2 };
 
-    function limpiarCanvas() {
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, width, height);
+  function limpiarCanvas() {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, width, height);
 
-      // Ejes
-      ctx.strokeStyle = "#000";
-      ctx.lineWidth = 1;
+    // Cuadrícula
+    ctx.strokeStyle = "#eee";
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i <= width / scale; i++) {
+      const x = i * scale;
       ctx.beginPath();
-      ctx.moveTo(0, origin.y);
-      ctx.lineTo(width, origin.y); // Eje X
-      ctx.moveTo(origin.x, 0);
-      ctx.lineTo(origin.x, height); // Eje Y
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
       ctx.stroke();
-
-      // Números y líneas de cuadrícula
-      ctx.font = "12px Arial";
-      ctx.fillStyle = "#333";
-      ctx.strokeStyle = "#eee";
-      ctx.lineWidth = 0.5;
-
-      for (let i = 0; i <= 12; i++) {
-        const x = origin.x + i * scale;
-        const y = origin.y - i * scale;
-
-        // Líneas verticales
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-
-        // Número en eje X
-        if (x >= origin.x) {
-          ctx.fillText(i, x - 3, origin.y + 15);
-        }
-
-        // Líneas horizontales
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-
-        // Número en eje Y
-        if (y <= origin.y) {
-          ctx.fillText(i, origin.x - 20, y + 3);
-        }
-      }
     }
 
-    function evaluar(func, x) {
-      try {
-        return eval(func);
-      } catch {
-        return NaN;
-      }
-    }
-
-    function graficarLinea(func, color = "purple") {
+    for (let i = 0; i <= height / scale; i++) {
+      const y = i * scale;
       ctx.beginPath();
-      ctx.strokeStyle = color;
-      for (let x = 0; x <= (width - origin.x) / scale; x += 0.1) {
-        const y = evaluar(func, x);
-        if (!isNaN(y)) {
-          const px = origin.x + x * scale;
-          const py = origin.y - y * scale;
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    // Ejes
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, origin.y); // eje X
+    ctx.lineTo(width, origin.y);
+    ctx.moveTo(origin.x, 0); // eje Y
+    ctx.lineTo(origin.x, height);
+    ctx.stroke();
+
+    // Números en los ejes
+    ctx.fillStyle = "#000";
+    ctx.font = "12px Arial";
+    for (let i = -Math.floor(origin.x / scale); i <= Math.floor((width - origin.x) / scale); i++) {
+      if (i !== 0) {
+        ctx.fillText(i, origin.x + i * scale - 5, origin.y + 15);
+      }
+    }
+
+    for (let i = -Math.floor(origin.y / scale); i <= Math.floor((height - origin.y) / scale); i++) {
+      if (i !== 0) {
+        ctx.fillText(-i, origin.x + 5, origin.y + i * scale + 3);
+      }
+    }
+  }
+
+  function evaluar(func, x) {
+    try {
+      return eval(func);
+    } catch {
+      return NaN;
+    }
+  }
+
+  function graficarLinea(func, color = "purple") {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    let started = false;
+    for (let x = -origin.x / scale; x <= (width - origin.x) / scale; x += 0.1) {
+      const y = evaluar(func, x);
+      if (!isNaN(y)) {
+        const px = origin.x + x * scale;
+        const py = origin.y - y * scale;
+        if (!started) {
+          ctx.moveTo(px, py);
+          started = true;
+        } else {
           ctx.lineTo(px, py);
         }
       }
-      ctx.stroke();
     }
+    ctx.stroke();
+  }
 
-    function sombrearRegion(func, tipo, color = "rgba(128,0,128,0.2)") {
-      for (let x = 0; x <= (width - origin.x) / scale; x += 0.1) {
-        const y = evaluar(func, x);
-        if (!isNaN(y)) {
-          const px = origin.x + x * scale;
-          const py = origin.y - y * scale;
-          if (tipo.includes("<")) {
-            ctx.fillStyle = color;
-            ctx.fillRect(px, py, 1, height - py);
-          } else if (tipo.includes(">")) {
-            ctx.fillStyle = color;
-            ctx.fillRect(px, 0, 1, py);
-          }
+  function sombrearRegion(func, tipo, color = "rgba(128,0,128,0.2)") {
+    for (let x = -origin.x / scale; x <= (width - origin.x) / scale; x += 0.1) {
+      const y = evaluar(func, x);
+      if (!isNaN(y)) {
+        const px = origin.x + x * scale;
+        const py = origin.y - y * scale;
+        ctx.fillStyle = color;
+        if (tipo.includes("<")) {
+          ctx.fillRect(px, py, 1, height - py);
+        } else if (tipo.includes(">")) {
+          ctx.fillRect(px, 0, 1, py);
         }
       }
     }
+  }
 
-    function graficar() {
-      limpiarCanvas();
-
-      const inecuaciones = [
-        document.getElementById("ineq1").value.trim(),
-        document.getElementById("ineq2").value.trim(),
-      ];
-
-      inecuaciones.forEach((ine, i) => {
-        if (ine) {
-          const match = ine.match(/y\s*([<>]=?)\s*(.+)/);
-          if (match) {
-            const operador = match[1];
-            const expresion = match[2];
-            sombrearRegion(expresion, operador);
-            graficarLinea(expresion);
-          } else {
-            alert("La desigualdad " + (i + 1) + " no tiene el formato correcto.");
-          }
-        }
-      });
-    }
-
-    // Dibujo inicial
+  function graficar() {
     limpiarCanvas();
-  </script>
+
+    const inecuaciones = [
+      document.getElementById("ineq1").value.trim(),
+      document.getElementById("ineq2").value.trim()
+    ];
+
+    inecuaciones.forEach((ine, i) => {
+      if (ine) {
+        const match = ine.match(/y\s*([<>]=?)\s*(.+)/);
+        if (match) {
+          const operador = match[1];
+          const expresion = match[2];
+          sombrearRegion(expresion, operador);
+          graficarLinea(expresion);
+        } else {
+          alert("La desigualdad " + (i + 1) + " no tiene el formato correcto.");
+        }
+      }
+    });
+  }
+
+  limpiarCanvas();
+</script>
 </body>
 </html>
